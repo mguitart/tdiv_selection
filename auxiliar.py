@@ -46,37 +46,36 @@ def openJournal(path):
 
 class TDiv:
 
-    def __init__(self, shot):
-        self.
+    def __init__(self, shot, t_ini, t_end):
         self.Tdiv = None
         self.shotfile = shot
         self.avg_Tdiv = None
         self.err_y = None
         self.valid = True
-        self.createTdiv(shot)
+        self.createTdiv(shot, t_ini, t_end)
 
-    def createTdiv(self, i):
+    def createTdiv(self, i, t_ini, t_end):
         dds = dd.shotfile('DDS', int(i))
         self.Tdiv = dds('Tdiv')
         dds.close()
         #make all same dimentions
         if self.Tdiv.data.size == 4501: #most of them
-            self.Tdiv.data = np.delete(Tdiv.data, -1)
-            self.Tdiv.time = np.delete(Tdiv.time, -1)
+            self.Tdiv.data = np.delete(self.Tdiv.data, -1)
+            self.Tdiv.time = np.delete(self.Tdiv.time, -1)
         elif self.Tdiv.data.size == 4500:
             pass
         else:
             self.valid = False
             return
 
-        indexTime = np.arange(Tdiv.time.shape[0])[(Tdiv.time > t_ini) & (Tdiv.time < t_end )]
+        indexTime = np.arange(self.Tdiv.time.shape[0])[(self.Tdiv.time > t_ini) & (self.Tdiv.time < t_end )]
 
         aux_time = []
         aux_data = []
         for t in indexTime:
 
-            aux_data.append(Tdiv.data[t])
-            aux_time.append(Tdiv.time[t])
+            aux_data.append(self.Tdiv.data[t])
+            aux_time.append(self.Tdiv.time[t])
 
         self.shotfile = i
         self.avg_Tdiv = np.mean(aux_data)
@@ -95,7 +94,7 @@ class TDiv:
         #evs.contour_plot(losname=los,log=True)
 
 
-    def Tdiv_rebin(self, Tdiv):
+    def Tdiv_rebin(self):
         binned_Tdiv = np.zeros_like(self.Tdiv.data)
         binned_Tdiv.resize(450)
         time = np.zeros_like(self.Tdiv.time)
@@ -109,10 +108,10 @@ class TDiv:
         return binned_Tdiv, time
 
 
-###############################%main#######################################
+################################## main ########################################
 def main():
 
-    shotfiles = openJournal('journal.csv', shotfiles)
+    shotfiles = openJournal('journal.csv')
 
 
     #plot the Tdiv of these shotfiles
@@ -124,7 +123,7 @@ def main():
     avg_Tdiv = []
     err_y = []
     for i in shotfiles:
-        shot = Tdiv(i)
+        shot = TDiv(i, t_ini, t_end)
         if shot.valid:
             valid_shotfiles.append(shot)
             avg_Tdiv.append(shot.avg_Tdiv) #mean
@@ -161,13 +160,13 @@ def main():
     for key in dbins:
         for shot in dbins[key]:
             f, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize = (15,10))
-            shotfile =  j[1]
-            spectra(int(shotfile.shot), 0, 8, ax1)        #plot spectra
-            spectra(int(shotfile.shot), t_ini, t_end, ax2)#plot averaged spectra for specified time window
+            shotfile =  shot[1]
+            shotfile.spectra(int(shotfile.shotfile), 0, 8, ax1)        #plot spectra
+            shotfile.spectra(int(shotfile.shotfile), t_ini, t_end, ax2)#plot averaged spectra for specified time window
 
             Tdiv = shotfile.Tdiv
 
-            uvs = dd.shotfile('UVS', shotfile.shot)
+            uvs = dd.shotfile('UVS', int(shotfile.shotfile))
             D_tot = uvs('D_tot')
             N_tot = uvs('N_tot')
             uvs.close()
