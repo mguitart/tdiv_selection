@@ -109,6 +109,7 @@ class Utils:
 
       aux_matrix = np.zeros(shape = (n_ch, a, 512))
       avg        = np.zeros(shape = (n_ch, 1, 512))
+      err        = np.zeros(shape = (n_ch, 1, 512))
 
       for i in range(0, len(self.rootgrp.variables['lambda'][:,3])): #all channels
 
@@ -117,9 +118,9 @@ class Utils:
               for t in indexTime: #desired time window
                   aux_matrix[i, k, j]+= self.calibrated_data[i, t, j]
                   k +=1
-              
-      avg[:, 0, :]=aux_matrix[:, :, :].mean(axis=1)
 
+      avg[:, 0, :]=aux_matrix[:, :, :].mean(axis=1)
+      
       self.avg = avg
 
 

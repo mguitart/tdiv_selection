@@ -27,6 +27,7 @@ def rebin (lst_x, lst_y):
         r_y.append(avg/(W-1))
     return [r_x, r_y]
 
+
 #read the shotfiles of the csv and save them in a list
 def openJournal(path):
     shotfiles = []
@@ -41,7 +42,38 @@ def openJournal(path):
                 shotfiles.append(row[0])
                 line_count += 1
         print 'Processed ' +str(line_count) +' lines.'
+        
     return shotfiles
+
+
+def plotting(ax1, ax2, ax3, t_ini, t_end):
+
+    ax1.set_title('Spectra')
+    ax1.set_ylabel('N')
+    ax1.set_xlabel('wavelength [nm]')
+    ax1.grid()
+    ax1.set_ylim([0.0, 6e19])
+    ax1.set_xlim([396 , 411])
+    ax1.legend()
+
+    ax2.set_ylabel('Tdiv')
+    ax2.set_xlabel('time [s]')
+    ax2.set_ylim([-20, 150])
+    ax2.set_xlim([0 , 8])
+    ax2.axvline(t_ini,  lw=2, alpha=0.5)
+    ax2.axvline(t_end,  lw=2, alpha=0.5)
+    x = [t_ini, t_ini, t_end, t_end]
+    y = [200, -50, -50, 200]
+    ax2.fill(x,y, facecolor = 'grey', alpha = 0.5)
+    ax2.grid()
+    ax2.legend()
+
+    ax3.set_ylabel('Gas Flux [1/s]')
+    ax3.set_xlabel('time [s]')
+    #ax3.set_ylim([-20, 150])
+    ax3.set_xlim([0 , 8])
+    ax3.grid()
+    ax3.legend()
 
 
 class TDiv:
@@ -52,12 +84,20 @@ class TDiv:
         self.avg_Tdiv = None
         self.err_y = None
         self.valid = True
+        self.data = None
+        self.jlos = None
         self.createTdiv(shot, t_ini, t_end)
 
     def createTdiv(self, i, t_ini, t_end):
         dds = dd.shotfile('DDS', int(i))
         self.Tdiv = dds('Tdiv')
         dds.close()
+
+        uvs = dd.shotfile('UVS', int(i))
+        self.D_tot = uvs('D_tot')
+        self.N_tot = uvs('N_tot')
+        uvs.close()
+
         #make all same dimentions
         if self.Tdiv.data.size == 4501: #most of them
             self.Tdiv.data = np.delete(self.Tdiv.data, -1)
@@ -65,6 +105,7 @@ class TDiv:
         elif self.Tdiv.data.size == 4500:
             pass
         else:
+            #print('Invalid')
             self.valid = False
             return
 
@@ -83,14 +124,15 @@ class TDiv:
 
 
 
-    def spectra(self, shot, t_ini, t_end, ax):
+    def spectra(self, shot, t_ini, t_end, ax, col, style,line,  lab):
 
-        evs = XVS.XVS('EVS',shot,smear_correction=False) #calling the class
-        evs.select_time(t_ini , t_end)
-        los = 'DOT-04'
-        jlos = np.where(evs.losnam == los)[0][0]
-        ax.plot(evs.wavel[jlos],evs.intensity.data.mean(axis=0)[jlos],label='high')
-
+        fvs = XVS.XVS('FVS',shot,smear_correction=False) #calling the class
+        fvs.select_time(t_ini , t_end)
+        los = 'ZIV-08'
+        jlos = np.where(fvs.losnam == los)[0][0]
+        ax.plot(fvs.wavel[jlos],fvs.intensity.data.mean(axis=0)[jlos],color = col, marker = style,linestyle = line,  label= lab)
+        self.data = fvs
+        self.jlos = jlos
         #evs.contour_plot(losname=los,log=True)
 
 
@@ -111,13 +153,14 @@ class TDiv:
 ################################## main ########################################
 def main():
 
-    shotfiles = openJournal('journal.csv')
+    shotfiles = openJournal('journal.csv') #lists the shotfiles
 
 
-    #plot the Tdiv of these shotfiles
+    #gets the Tdiv of these shotfiles
     #change it as wished
-    t_ini = 3
-    t_end = 4
+    t_ini = 2.
+    t_end = 3.
+    x_position = float((t_end + t_ini)/2)
 
     valid_shotfiles = []
     avg_Tdiv = []
@@ -125,19 +168,26 @@ def main():
     for i in shotfiles:
         shot = TDiv(i, t_ini, t_end)
         if shot.valid:
+            print shot.valid
+            print shot.avg_Tdiv
             valid_shotfiles.append(shot)
-            avg_Tdiv.append(shot.avg_Tdiv) #mean
+            avg_Tdiv.append(shot.avg_Tdiv)#mean
+            
             err_y.append(shot.err_y)     #standard deviation
-
-    #plt.errorbar(aux_shotfiles, avg_Tdiv , yerr= err_y, color = 'r', ecolor='k', fmt =  'o')
+            
+    ordenat_Tdiv = np.sort(avg_Tdiv)
+    #print ordenat_Tdiv
+    #plt.errorbar(, avg_Tdiv , yerr= err_y, color = 'r', ecolor='k', fmt =  'o')
     #plt.grid()
     #plt.show()
+
 
     #create hystogram
     bins= [-5,0,5,10,15,20,25,30,40,50,60,70,150]
     hist = np.histogram(avg_Tdiv, bins=bins)
-    #plt.hist(avg_Tdiv, bins=bins)
-    #splt.show(block= True)
+    #print hist
+    plt.hist(avg_Tdiv, bins=bins)
+    plt.show(block= True)
     shotfiles_dict = {}
     for i in range(len(valid_shotfiles)):
         shotfiles_dict[str(avg_Tdiv[i])] = valid_shotfiles[i]
@@ -156,29 +206,39 @@ def main():
        dbins[str(bins[bi])].append([avg, shotfiles_dict[str(avg)]])
 
 
-    #f, (ax1,ax2, ax3, ax4) = plt.subplots(4, 1, figsize = (15,10)) #sharex = 'col', sharey = 'row'
-    for key in dbins:
-        for shot in dbins[key]:
-            f, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize = (15,10))
+    for key in dbins: #each bin
+        plt.plot([1, 2, 3], [2,2,2])
+        plt.title('bin: '+ key, size = 18)
+        plt.show()
+        for shot in dbins[key]: # each shotfile 
+            f, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize = (15,15))
+            f.suptitle('bin = '+ str(key)+'. Shotfile ' + str(shot[1].shotfile), size = 30)
+            print shot[1].shotfile
             shotfile =  shot[1]
-            shotfile.spectra(int(shotfile.shotfile), 0, 8, ax1)        #plot spectra
-            shotfile.spectra(int(shotfile.shotfile), t_ini, t_end, ax2)#plot averaged spectra for specified time window
-
+            try:
+                shotfile.spectra(int(shotfile.shotfile),     0,     8, ax1, 'r','-', 'averaged_spectra')        #plot spectra
+                shotfile.spectra(int(shotfile.shotfile), t_ini, t_end, ax1, 'b', '-', 'window_averaged_spectra')#plot averaged spectra for specified time window
+            except:
+                print 'error: '  + str(shot[1].shotfile)
+                continue
+            print shotfile.avg_Tdiv
             Tdiv = shotfile.Tdiv
-
-            uvs = dd.shotfile('UVS', int(shotfile.shotfile))
-            D_tot = uvs('D_tot')
-            N_tot = uvs('N_tot')
-            uvs.close()
+            D_tot = shotfile.D_tot
+            N_tot = shotfile.N_tot
 
             #rebin IDL
             Tdiv_binned, time = shotfile.Tdiv_rebin()
-            ax3.plot(Tdiv.time, Tdiv.data, 'b')
-            ax3.plot(time,Tdiv_binned, 'r')
-            ax4.plot(D_tot.time, D_tot.data, 'k', label= 'Dtot')
-            ax4.plot(N_tot.time, N_tot.data, 'r', label= 'Ntot')
-            ax4.legend()
+
+            ax2.plot(Tdiv.time, Tdiv.data, 'b', label = 'Tdiv')
+            ax2.plot(time,Tdiv_binned, 'r', label = 'binned_Tdiv')
+            ax2.errorbar(x_position, shotfile.avg_Tdiv, yerr= shotfile.err_y, color = 'g', ecolor='k',elinewidth = 2,  fmt =  'o', label = 'average_Tdiv' , markersize = 8)
+
+            ax3.plot(D_tot.time, D_tot.data, 'k', label= 'Dtot')
+            ax3.plot(N_tot.time, N_tot.data, 'r', label= 'Ntot')
+
+            plotting(ax1, ax2, ax3, t_ini, t_end)
             plt.show()
+
 
 if __name__ == '__main__':
     main()
