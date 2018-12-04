@@ -86,6 +86,7 @@ class TDiv:
         self.valid = True
         self.data = None
         self.jlos = None
+        self.los = None
         self.createTdiv(shot, t_ini, t_end)
 
     def createTdiv(self, i, t_ini, t_end):
@@ -124,17 +125,27 @@ class TDiv:
 
 
 
-    def spectra(self, shot, t_ini, t_end, ax, col, style,line,  lab):
-
+    def spectra(self, shot, t_ini, t_end, ax, col, style, line,  lab):
+        #comment either fvs or evs
+        '''
         fvs = XVS.XVS('FVS',shot,smear_correction=False) #calling the class
         fvs.select_time(t_ini , t_end)
-        los = 'ZIV-08'
+        los = 'DOT-03' #change it as one wishes
         jlos = np.where(fvs.losnam == los)[0][0]
         ax.plot(fvs.wavel[jlos],fvs.intensity.data.mean(axis=0)[jlos],color = col, marker = style,linestyle = line,  label= lab)
         self.data = fvs
-        self.jlos = jlos
-        #evs.contour_plot(losname=los,log=True)
 
+        '''
+        evs = XVS.XVS('EVS',shot,smear_correction=False) #calling the class
+        evs.select_time(t_ini , t_end)
+        los = 'DOT-04' #change it as one wishes
+        jlos = np.where(evs.losnam == los)[0][0]
+        ax.plot(evs.wavel[jlos],evs.intensity.data.mean(axis=0)[jlos],color = col, marker = style,linestyle = line,  label= lab)
+        self.data = evs
+        
+
+        self.jlos = jlos
+        self.los = los
 
     def Tdiv_rebin(self):
         binned_Tdiv = np.zeros_like(self.Tdiv.data)
@@ -207,7 +218,7 @@ def main():
 
 
     for key in dbins: #each bin
-        plt.plot([1, 2, 3], [2,2,2])
+        plt.plot([1, 2, 3], [2, 2, 2])
         plt.title('bin: '+ key, size = 18)
         plt.show()
         for shot in dbins[key]: # each shotfile 
@@ -216,8 +227,9 @@ def main():
             print shot[1].shotfile
             shotfile =  shot[1]
             try:
-                shotfile.spectra(int(shotfile.shotfile),     0,     8, ax1, 'r','-', 'averaged_spectra')        #plot spectra
-                shotfile.spectra(int(shotfile.shotfile), t_ini, t_end, ax1, 'b', '-', 'window_averaged_spectra')#plot averaged spectra for specified time window
+                shotfile.spectra(int(shotfile.shotfile),     0,     8, ax1, 'r', '' , '-', 'averaged_spectra')        #plot spectra
+                shotfile.spectra(int(shotfile.shotfile), t_ini, t_end, ax1, 'b', '' , '-', 'window_averaged_spectra')#plot averaged spectra for specified time window
+            
             except:
                 print 'error: '  + str(shot[1].shotfile)
                 continue
