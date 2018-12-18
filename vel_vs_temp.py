@@ -137,12 +137,12 @@ def main():
             continue
 
     #plt.show()
+    fig,ax = plt.subplots()
 
-
-    green = Colors(cm.Greens, 'Discharges [34800, 34880]')
-    blue  = Colors(cm.Blues,  'Discharges [34920, 35100]')
-    red   = Colors(cm.Reds,   'Discharges [35120, 35190]')
-    grey  = Colors(cm.Greys,  'Discharges [35191, 35230]')
+    green = Colors(cm.Greens, 'Discharges [34800, 34880]', fig, ax)
+    blue  = Colors(cm.Blues,  'Discharges [34920, 35100]', fig, ax)
+    red   = Colors(cm.Reds,   'Discharges [35120, 35190]', fig, ax)
+    grey  = Colors(cm.Greys,  'Discharges [35191, 35230]', fig, ax)
 
     for key in shotfiles_dict:
         try:

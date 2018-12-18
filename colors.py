@@ -14,7 +14,7 @@ class Colors:
         self.norm = matplotlib.colors.LogNorm()
         self.cmap = plt.cm.RdYlGn
         self.cmap2 = color
-        fig,ax = plt.subplots()
+        #fig,ax = plt.subplots()
         self.fig = fig
         self.ax = ax
         self.sc = None
@@ -60,6 +60,8 @@ class Colors:
                 if vis:
                     self.annot.set_visible(False)
                     self.fig.canvas.draw_idle()
+
+    def
 
     def plot(self, xvalues, yvalues, xerr, yerr, colors, names, spec, los, hover):
         self.names = names
