@@ -61,7 +61,6 @@ class Colors:
                     self.annot.set_visible(False)
                     self.fig.canvas.draw_idle()
 
-    def
 
     def plot(self, xvalues, yvalues, xerr, yerr, colors, names, spec, los, hover):
         self.names = names
