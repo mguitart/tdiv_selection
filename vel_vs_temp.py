@@ -205,7 +205,7 @@ def main():
     green.plot2(green.T_div, green.vel, green.x_err,green.y_err, green.colors, green.labels, shotfile.spec, shotfile.los, hovers)
     blue.plot2(blue.T_div, blue.vel, blue.x_err, blue.y_err, blue.colors, blue.labels, shotfile.spec, shotfile.los, hovers)
     grey.plot2(grey.T_div, grey.vel, grey.x_err, grey.y_err, grey.colors, grey.labels, shotfile.spec, shotfile.los, hovers)
-    red.plot2(red.T_div, red.vel, red.x_err,red.y_err, red.colors, red.labels, shotfile.spec, shotfile.los, hovers, hovers)
+    red.plot2(red.T_div, red.vel, red.x_err,red.y_err, red.colors, red.labels, shotfile.spec, shotfile.los, hovers)
 
     plt.show()
 
