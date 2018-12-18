@@ -207,6 +207,9 @@ def main():
     grey.plot2(grey.T_div, grey.vel, grey.x_err, grey.y_err, grey.colors, grey.labels, shotfile.spec, shotfile.los, hovers)
     red.plot2(red.T_div, red.vel, red.x_err,red.y_err, red.colors, red.labels, shotfile.spec, shotfile.los, hovers)
 
+    plt.minorticks_on()
+    plt.grid(which= 'both', axis = 'x')
+    plt.grid(which= 'major`', axis = 'y')
     plt.show()
 
 '''

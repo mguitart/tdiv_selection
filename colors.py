@@ -6,7 +6,7 @@ from matplotlib import cm
 
 class Colors:
 
-    def __init__(self, color, label):
+    def __init__(self, color, label, fig, ax):
         self.names = None
         self.c = None
         self.min = None
@@ -121,9 +121,7 @@ class Colors:
         plt.axhline(y=0.0, color='grey', linestyle='-')
         plt.xlabel('Divertor Temperature [eV]')
         plt.ylabel('Velocity [km/s]')
-        plt.minorticks_on()
-        plt.grid(which= 'both', axis = 'x')
-        plt.grid(which= 'major`', axis = 'y')
 
-        ax= plt.gca()
+
+        self.ax= plt.gca()
         #plt.show()
