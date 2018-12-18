@@ -19,7 +19,7 @@ class Colors:
         self.ax = ax
         self.sc = None
         self.eb = None
-        
+
         self.T_div = []
         self.vel = []
         self.x_err = []
@@ -29,6 +29,7 @@ class Colors:
         self.spec = None
         self.los = None
         self.label = label
+        self.hovers = []
 
         self.annot = ax.annotate("", xy=(0,0), xytext=(20,20),textcoords="offset points",
                             bbox=dict(boxstyle="round", fc="w"),
@@ -43,6 +44,9 @@ class Colors:
         self.annot.get_bbox_patch().set_facecolor(self.cmap(self.norm(self.c[ind["ind"][0]])))
         self.annot.get_bbox_patch().set_alpha(0.4)
 
+    def doHovers(self, event):
+        for h in self.hovers:
+            h.hover(event)
 
     def hover(self, event):
         vis = self.annot.get_visible()
@@ -57,10 +61,10 @@ class Colors:
                     self.annot.set_visible(False)
                     self.fig.canvas.draw_idle()
 
-    def plot(self, xvalues, yvalues, xerr, yerr, colors, names, spec, los):
+    def plot(self, xvalues, yvalues, xerr, yerr, colors, names, spec, los, hover):
         self.names = names
         self.c = colors
-       
+
         self.min  =min(colors)
         self.max = max(colors)
         print self.min, self.max
@@ -89,25 +93,26 @@ class Colors:
 
         ax= plt.gca()
         plt.show()
-    
-    
-    def plot2(self, xvalues, yvalues, xerr, yerr, colors, names, spec, los):
+
+
+    def plot2(self, xvalues, yvalues, xerr, yerr, colors, names, spec, los, hovers):
+        self.hovers = hovers
         self.names = names
         self.c = colors
-       
+
         self.min  =min(colors)
         self.max = max(colors)
         print self.min, self.max
         self.sc = plt.scatter(xvalues, yvalues, c=colors,  s =100, cmap=self.cmap2, norm=self.norm)
         _, __ ,errorlinecollection = plt.errorbar(xvalues, yvalues, xerr = xerr, yerr = yerr, marker='', ls='', zorder=0)
-        
+
         cb = plt.colorbar()
         error_color = cb.to_rgba(colors)
 
         errorlinecollection[0].set_color(error_color)
         errorlinecollection[1].set_color(error_color)
 
-        self.fig.canvas.mpl_connect("motion_notify_event", self.hover)
+        self.fig.canvas.mpl_connect("motion_notify_event", self.doHovers)
 
         plt.title(str(spec)+ '_' + str(los))
         cb.set_label(self.label)
